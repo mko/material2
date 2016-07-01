@@ -4,25 +4,26 @@ import {
   Renderer,
   ElementRef,
   Input,
+  ContentChildren,
+  QueryList,
+  AfterContentInit
 } from '@angular/core';
-
-import {coerceToNumber} from './grid-list';
+import { MdLine, MdLineSetter } from '@angular2-material/core/line/line';
+import {coerceToNumber} from './grid-list-measure';
 
 @Component({
+  moduleId: module.id,
   selector: 'md-grid-tile',
   host: { 'role': 'listitem' },
-  templateUrl: './components/grid-list/grid-tile.html',
-  styleUrls: ['./components/grid-list/grid-list.css'],
+  templateUrl: 'grid-tile.html',
+  styleUrls: ['grid-list.css'],
   encapsulation: ViewEncapsulation.None,
 })
 export class MdGridTile {
   _rowspan: number = 1;
   _colspan: number = 1;
-  _element: HTMLElement;
 
-  constructor(private _renderer: Renderer, element: ElementRef) {
-    this._element = element.nativeElement;
-  }
+  constructor(private _renderer: Renderer, private _element: ElementRef) {}
 
   @Input()
   get rowspan() {
@@ -47,7 +48,28 @@ export class MdGridTile {
    * @internal
    */
   setStyle(property: string, value: string): void {
-    this._renderer.setElementStyle(this._element, property, value);
+    this._renderer.setElementStyle(this._element.nativeElement, property, value);
   }
 
 }
+
+@Component({
+  moduleId: module.id,
+  selector: 'md-grid-tile-header, md-grid-tile-footer',
+  templateUrl: 'grid-tile-text.html'
+})
+export class MdGridTileText implements AfterContentInit {
+  /**
+   *  Helper that watches the number of lines in a text area and sets
+   * a class on the host element that matches the line count.
+   */
+  _lineSetter: MdLineSetter;
+  @ContentChildren(MdLine) _lines: QueryList<MdLine>;
+
+  constructor(private _renderer: Renderer, private _element: ElementRef) {}
+
+  ngAfterContentInit() {
+    this._lineSetter = new MdLineSetter(this._lines, this._renderer, this._element);
+  }
+}
+

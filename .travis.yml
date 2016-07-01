@@ -36,6 +36,7 @@ env:
   matrix:
     # Order: a slower build first, so that we don't occupy an idle travis worker waiting for others to complete.
     - MODE=lint
+    - MODE=circular_deps
     - MODE=e2e
     - MODE=saucelabs_required
     - MODE=browserstack_required
@@ -46,7 +47,6 @@ matrix:
   allow_failures:
   - env: "MODE=saucelabs_optional"
   - env: "MODE=browserstack_optional"
-  - env: "MODE=e2e"
 
 install:
   - npm install

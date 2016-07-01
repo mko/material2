@@ -6,6 +6,7 @@ import {
   ChangeDetectionStrategy,
   ElementRef,
   Renderer,
+  Type,
 } from '@angular/core';
 
 // TODO(jelbourn): Ink ripples.
@@ -14,6 +15,7 @@ import {
 
 
 @Component({
+  moduleId: module.id,
   selector: 'button[md-button], button[md-raised-button], button[md-icon-button], ' +
             'button[md-fab], button[md-mini-fab]',
   inputs: ['color'],
@@ -23,8 +25,8 @@ import {
     '(focus)': 'setKeyboardFocus()',
     '(blur)': 'removeKeyboardFocus()',
   },
-  templateUrl: './components/button/button.html',
-  styleUrls: ['./components/button/button.css'],
+  templateUrl: 'button.html',
+  styleUrls: ['button.css'],
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -47,6 +49,7 @@ export class MdButton {
     this._updateColor(value);
   }
 
+  /** @internal */
   setMousedown() {
     // We only *show* the focus style when focus has come to the button via the keyboard.
     // The Material Design spec is silent on this topic, and without doing this, the
@@ -68,16 +71,24 @@ export class MdButton {
     }
   }
 
-  setKeyboardFocus($event: any) {
+  /** @internal */
+  setKeyboardFocus() {
     this.isKeyboardFocused = !this.isMouseDown;
   }
 
+  /** @internal */
   removeKeyboardFocus() {
     this.isKeyboardFocused = false;
+  }
+
+  /** TODO(hansl): e2e test this function. */
+  focus() {
+    this.elementRef.nativeElement.focus();
   }
 }
 
 @Component({
+  moduleId: module.id,
   selector: 'a[md-button], a[md-raised-button], a[md-icon-button], a[md-fab], a[md-mini-fab]',
   inputs: ['color'],
   host: {
@@ -87,8 +98,8 @@ export class MdButton {
     '(blur)': 'removeKeyboardFocus()',
     '(click)': 'haltDisabledEvents($event)',
   },
-  templateUrl: './components/button/button.html',
-  styleUrls: ['./components/button/button.css'],
+  templateUrl: 'button.html',
+  styleUrls: ['button.css'],
   encapsulation: ViewEncapsulation.None
 })
 export class MdAnchor extends MdButton {
@@ -118,6 +129,7 @@ export class MdAnchor extends MdButton {
     this._disabled = (value != null && value != false) ? true : null;
   }
 
+  /** @internal */
   haltDisabledEvents(event: Event) {
     // A disabled button shouldn't apply any actions
     if (this.disabled) {
@@ -126,3 +138,6 @@ export class MdAnchor extends MdButton {
     }
   }
 }
+
+
+export const MD_BUTTON_DIRECTIVES: Type[] = [MdButton, MdAnchor];

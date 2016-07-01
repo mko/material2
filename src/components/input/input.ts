@@ -13,22 +13,26 @@ import {
   ElementRef,
   QueryList,
   OnChanges,
+  EventEmitter,
+  Output,
 } from '@angular/core';
 import {
   NG_VALUE_ACCESSOR,
-  ControlValueAccessor
-} from '@angular/common';
-import {BooleanFieldValue} from '../../core/annotations/field-value';
-import {MdError} from '../../core/errors/error';
+  ControlValueAccessor,
+  NgModel,
+} from '@angular/forms';
+import {NgIf} from '@angular/common';
+import {BooleanFieldValue} from '@angular2-material/core/annotations/field-value';
+import {MdError} from '@angular2-material/core/errors/error';
+import {Observable} from 'rxjs/Observable';
 
 
 const noop = () => {};
 
-const MD_INPUT_CONTROL_VALUE_ACCESSOR = new Provider(
-    NG_VALUE_ACCESSOR, {
-      useExisting: forwardRef(() => MdInput),
-      multi: true
-    });
+export const MD_INPUT_CONTROL_VALUE_ACCESSOR = new Provider(NG_VALUE_ACCESSOR, {
+  useExisting: forwardRef(() => MdInput),
+  multi: true
+});
 
 // Invalid input type. Using one of these will throw an MdInputUnsupportedTypeError.
 const MD_INPUT_INVALID_INPUT_TYPE = [
@@ -71,9 +75,7 @@ export class MdInputDuplicatedHintError extends MdError {
 export class MdPlaceholder {}
 
 
-/**
- * The hint directive, used to tag content as hint labels (going under the input).
- */
+/** The hint directive, used to tag content as hint labels (going under the input). */
 @Directive({
   selector: 'md-hint',
   host: {
@@ -92,10 +94,12 @@ export class MdHint {
  * improve on its behaviour, along with styling it according to the Material Design.
  */
 @Component({
+  moduleId: module.id,
   selector: 'md-input',
-  templateUrl: 'components/input/input.html',
-  styleUrls: ['components/input/input.css'],
+  templateUrl: 'input.html',
+  styleUrls: ['input.css'],
   providers: [MD_INPUT_CONTROL_VALUE_ACCESSOR],
+  directives: [NgIf, NgModel],
   host: {'(click)' : 'focus()'}
 })
 export class MdInput implements ControlValueAccessor, AfterContentInit, OnChanges {
@@ -128,21 +132,46 @@ export class MdInput implements ControlValueAccessor, AfterContentInit, OnChange
   get characterCount(): number {
     return this.empty ? 0 : ('' + this._value).length;
   }
+  get inputId(): string { return `${this.id}-input`; }
 
   /**
    * Bindings.
    */
   @Input() align: 'start' | 'end' = 'start';
   @Input() dividerColor: 'primary' | 'accent' | 'warn' = 'primary';
-  @Input() @BooleanFieldValue() disabled: boolean = false;
   @Input() @BooleanFieldValue() floatingPlaceholder: boolean = true;
   @Input() hintLabel: string = '';
+
+  @Input() autoComplete: string;
+  @Input() @BooleanFieldValue() autoFocus: boolean = false;
+  @Input() @BooleanFieldValue() disabled: boolean = false;
   @Input() id: string = `md-input-${nextUniqueId++}`;
-  @Input() maxLength: number = -1;
-  @Input() placeholder: string;
+  @Input() list: string = null;
+  @Input() max: string = null;
+  @Input() maxLength: number = null;
+  @Input() min: string = null;
+  @Input() minLength: number = null;
+  @Input() placeholder: string = null;
+  @Input() @BooleanFieldValue() readOnly: boolean = false;
   @Input() @BooleanFieldValue() required: boolean = false;
-  @Input() @BooleanFieldValue() spellcheck: boolean = false;
+  @Input() @BooleanFieldValue() spellCheck: boolean = false;
+  @Input() step: number = null;
+  @Input() tabIndex: number = null;
   @Input() type: string = 'text';
+  @Input() name: string = null;
+
+  private _blurEmitter: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+  private _focusEmitter: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+
+  @Output('blur')
+  get onBlur(): Observable<FocusEvent> {
+    return this._blurEmitter.asObservable();
+  }
+
+  @Output('focus')
+  get onFocus(): Observable<FocusEvent> {
+    return this._focusEmitter.asObservable();
+  }
 
   get value(): any { return this._value; };
   @Input() set value(v: any) {
@@ -167,17 +196,21 @@ export class MdInput implements ControlValueAccessor, AfterContentInit, OnChange
   }
 
   /** @internal */
-  onFocus() {
+  handleFocus(event: FocusEvent) {
     this._focused = true;
+    this._focusEmitter.emit(event);
   }
+
   /** @internal */
-  onBlur() {
+  handleBlur(event: FocusEvent) {
     this._focused = false;
     this._onTouchedCallback();
+    this._blurEmitter.emit(event);
   }
+
   /** @internal */
-  onChange(ev: Event) {
-    this.value = (<HTMLInputElement>ev.target).value;
+  handleChange(event: Event) {
+    this.value = (<HTMLInputElement>event.target).value;
     this._onTouchedCallback();
   }
 
@@ -186,21 +219,31 @@ export class MdInput implements ControlValueAccessor, AfterContentInit, OnChange
     return !!this.placeholder || this._placeholderChild != null;
   }
 
-  /** Implemented as part of ControlValueAccessor. */
+  /**
+   * Implemented as part of ControlValueAccessor.
+   * TODO: internal
+   */
   writeValue(value: any) {
     this._value = value;
   }
 
-  /** Implemented as part of ControlValueAccessor. */
+  /**
+   * Implemented as part of ControlValueAccessor.
+   * TODO: internal
+   */
   registerOnChange(fn: any) {
     this._onChangeCallback = fn;
   }
 
-  /** Implemented as part of ControlValueAccessor. */
+  /**
+   * Implemented as part of ControlValueAccessor.
+   * TODO: internal
+   */
   registerOnTouched(fn: any) {
     this._onTouchedCallback = fn;
   }
 
+  /** TODO: internal */
   ngAfterContentInit() {
     this._validateConstraints();
 
@@ -210,6 +253,7 @@ export class MdInput implements ControlValueAccessor, AfterContentInit, OnChange
     });
   }
 
+  /** TODO: internal */
   ngOnChanges(changes: {[key: string]: SimpleChange}) {
     this._validateConstraints();
   }
@@ -265,8 +309,4 @@ export class MdInput implements ControlValueAccessor, AfterContentInit, OnChange
   }
 }
 
-export const MD_INPUT_DIRECTIVES: any[] = [
-  MdPlaceholder,
-  MdInput,
-  MdHint,
-];
+export const MD_INPUT_DIRECTIVES = [MdPlaceholder, MdInput, MdHint];

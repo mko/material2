@@ -1,13 +1,25 @@
 import {Component} from '@angular/core';
-import {MD_GRID_LIST_DIRECTIVES} from '../../components/grid-list/grid-list';
-import {MdButton} from '../../components/button/button';
-import {MD_CARD_DIRECTIVES} from '../../components/card/card';
+import {NgFor} from '@angular/common';
+import {FORM_DIRECTIVES} from '@angular/forms';
+import {MD_GRID_LIST_DIRECTIVES} from '@angular2-material/grid-list/grid-list';
+import {MdButton} from '@angular2-material/button/button';
+import {MD_CARD_DIRECTIVES} from '@angular2-material/card/card';
+import {MdIcon, MdIconRegistry} from '@angular2-material/icon/icon';
 
 @Component({
+  moduleId: module.id,
   selector: 'grid-list-demo',
-  templateUrl: 'demo-app/grid-list/grid-list-demo.html',
-  styleUrls: ['demo-app/grid-list/grid-list-demo.css'],
-  directives: [MD_GRID_LIST_DIRECTIVES, MdButton, MD_CARD_DIRECTIVES]
+  templateUrl: 'grid-list-demo.html',
+  styleUrls: ['grid-list-demo.css'],
+  directives: [
+    MD_GRID_LIST_DIRECTIVES,
+    MdButton,
+    MD_CARD_DIRECTIVES,
+    MdIcon,
+    FORM_DIRECTIVES,
+    NgFor,
+  ],
+  providers: [MdIconRegistry]
 })
 export class GridListDemo {
   tiles: any[] = [
@@ -15,6 +27,15 @@ export class GridListDemo {
     {text: 'Two', cols: 1, rows: 2, color: 'lightgreen'},
     {text: 'Three', cols: 1, rows: 1, color: 'lightpink'},
     {text: 'Four', cols: 2, rows: 1, color: '#DDBDF1'},
+  ];
+
+  dogs: Object[] = [
+    { name: 'Porter', human: 'Kara' },
+    { name: 'Mal', human: 'Jeremy' },
+    { name: 'Koby', human: 'Igor' },
+    { name: 'Razzle', human: 'Ward' },
+    { name: 'Molly', human: 'Rob' },
+    { name: 'Husi', human: 'Matias' },
   ];
 
   fixedCols: number = 4;

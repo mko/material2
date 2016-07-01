@@ -16,12 +16,15 @@ npm run inline-resources
 
 wait_for_tunnel
 if is_lint; then
-  npm run tslint
+  npm run tslint  
   npm run ci:forbidden-identifiers
+  npm run stylelint
+elif is_circular_deps_check; then
+  npm run check-circular-deps
 elif is_e2e; then
-  ng serve &
+  MD_APP=e2e ng serve &
   sleep 20
-  npm run e2e
+  ng e2e
 else
   karma start test/karma.conf.js --single-run --no-auto-watch --reporters='dots'
 fi
